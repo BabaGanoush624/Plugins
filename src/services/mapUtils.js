@@ -1,53 +1,90 @@
-import { apiRegistry, actionsRegistry } from "@penta-b/ma-lib";
-let VL = null;
-const validateVL = async (options) => {
-  if (!VL) {
-    await apiRegistry.getApis(["VectorLayer"]).then(([VectorLayer]) => {
-      VL = new VectorLayer();
-      actionsRegistry.dispatch("addVectorLayer", VL);
-    });
-  } else {
-    options.clear && VL.clear();
-  }
-};
+import { store, query, systemShowLoading, systemHideLoading } from '@penta-b/ma-lib';
 
-const generateStyle = async (styleOptions) => {
-  return await apiRegistry
-    .getApis(["Style", "Fill", "Stroke", "Circle"])
-    .then(([Style, Fill, Stroke, Circle]) => {
-      let style;
-      if (styleOptions.isFile) {
-        style = new Style.createStyle({
-          icon: styleOptions.iconSrc,
-        });
-      } else {
-        style = new Style(
-          null,
-          null,
-          new Circle(
-            new Fill(styleOptions.color),
-            new Stroke("#000000", 1, null),
-            7
-          )
-        );
+
+const genQueryBody = (layer, buffer) => {
+  return [
+    {
+      dataSource: {
+        id: layer[0].id,
+      },
+      returns: [],
+      fitler: {
+        conditionList: [
+          {
+            spatialCondition: {
+              key: layer[0].geometryField.fieldName,
+              geometry: JSON.stringify(buffer.geometry),
+              spatialRelation: "INTERSECT",
+            },
+          },
+        ],
+      },
+      crs: layer[0].crs,
+    },
+  ];
+
+
+
+
+  /* return [
+    {
+      // returnAs: "JSON",
+      dataSource: {
+        id: layer[0].id,
+      },
+      crs: layer[0].crs,
+      // crs: "EPSG:4326",
+      filter: {
+        conditionList: [
+          {
+            geometry: JSON.stringify(buffer.geometry),
+            key: layer[0].geometryField.fieldName,
+            spatialRelation: "INTERSECT"
+          }
+        ],
+        // logicalOperation: "OR",
       }
+    },
 
-      return style;
+  ] */
+}
+export const callQueryService = async (layer, action, buffer) => {
+  store.dispatch(systemShowLoading());
+  query.queryFeatures(genQueryBody(layer, buffer))
+    // .then(res => JSON.parse(res))
+    .then((response) => {
+      action(response)
+    })
+    .catch(error => {
+      console.log(error);
+    })
+    .finally(() => {
+      store.dispatch(systemHideLoading());
+    })
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* import { apiRegistry, actionsRegistry } from "@penta-b/ma-lib";
+import { store, query, systemShowLoading, systemHideLoading } from "@penta-b/ma-lib";
+export function createVectorLayer() {
+  apiRegistry
+    .getApis(["VectorLayer", "Drawing"])
+    .then(([VectorLayer, Drawing]) => {
+      const vectorLayer = new VectorLayer();
+      actionsRegistry.dispatch("addVectorLayer", vectorLayer);
+      const drawing = new Drawing({ type: "point", vectorLayer: vectorLayer });
+      actionsRegistry.dispatch("addInteraction", drawing);
     });
-};
-
-export const generateFeature = async (geoJSONFeature) => {
-  return await apiRegistry.getApis(["Feature"]).then(([Feature]) => {
-    return new Feature({ ...geoJSONFeature })
-  });
-};
-
-
-
-export const drawFeatures = async (GEOJSONFeatures, options) => {
-  await validateVL(options.vectorLayerOptions);
-  const features = await Promise.all(GEOJSONFeatures.map(generateFeature));
-  const style = await generateStyle(options.styleOptions);
-  VL.setStyle(style);
-  VL.addFeatures(features);
-};
+} */

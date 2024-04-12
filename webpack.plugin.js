@@ -73,7 +73,8 @@ module.exports = {
         'react-dom': 'react-dom',
         'redux': 'redux',
         'react-redux': 'react-redux',
-        '@penta-b/ma-lib': '@penta-b/ma-lib'
+        '@penta-b/ma-lib': '@penta-b/ma-lib',
+        '@penta-b/grid': '@penta-b/grid',
     },
     plugins: [
         process.env.NODE_ENV !== 'production' &&

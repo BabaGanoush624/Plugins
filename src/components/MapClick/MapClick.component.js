@@ -10,13 +10,32 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { selectorsRegistry, actionsRegistry } from '@penta-b/ma-lib';
-import { callQueryService } from '../../services/queryService';
-import { drawFeatures } from '../../services/mapUtils';
-
+import { createVectorLayer } from '../../services/mapUtils';
+import * as turf from '@turf/turf'
+import { query, store } from "@penta-b/ma-lib"
+import { callQueryService } from '../../services/mapUtils';
 
 class MapClickComponent extends React.Component {
     constructor(props) {
         super(props);
+        this.handleResp = this.handleResp.bind(this)
+    }
+
+    handleResp(res) {
+        // console.log(res);
+        const data = JSON.parse(res.data[0].features);
+
+        console.log(data);
+        this.id && this.props.removeMapClickResult(this.id);
+        const currentClick = this.props.singleClick;
+
+        this.props.showMapClickResult(
+            {
+                coordinate: currentClick.coordinate,
+                info: data,
+            },
+            id => this.id = id);
+        return res;
     }
 
     /**
@@ -25,35 +44,26 @@ class MapClickComponent extends React.Component {
      */
 
     componentDidMount() {
-        console.log(this.props.settings);
-        const { ganoushLayer } = this.props.settings.dataSettings;
-        const { POINT_SHAPE, POINT_COLOR, POINT_IMAGE } = ganoushLayer[0]["basicSettings"];
-        callQueryService(ganoushLayer).then(async (GEOJSONFeatures) => {
-            if (!GEOJSONFeatures) return this.props.notify("ISSUE WITH REQUEST", "error");
 
-
-            await drawFeatures(GEOJSONFeatures, {
-                vectorLayerOptions: { clear: false },
-                styleOptions: {
-                    isFile: POINT_SHAPE === "img",
-                    color: POINT_COLOR,
-                    iconSrc: POINT_IMAGE,
-                },
-            });
-        });
+        // createVectorLayer();
     }
+
+
     componentDidUpdate(prevProps) {
 
         if (this.props.isActive) {
             const prevClick = prevProps.singleClick;
             const currentClick = this.props.singleClick;
+            const point = currentClick && turf.point([currentClick?.coordinate?.[0], currentClick?.coordinate?.[1]]);
+            const buffer = point && turf.buffer(point, 100, { units: 'kilometers' });
 
-            if (currentClick && currentClick != prevClick) {
-                this.id && this.props.removeMapClickResult(this.id);
-
-                this.props.showMapClickResult({
-                    coordinate: currentClick.coordinate
-                }, id => this.id = id);
+            if (currentClick && currentClick != prevClick && buffer) {
+                console.log(point);
+                console.log(buffer);
+                const { ganoushLayer } = this.props.settings.dataSettings;
+                // query all layers using the buffer
+                // wait for query resp and pass it to showmapCLickResult
+                callQueryService(ganoushLayer, this.handleResp, buffer);
             }
         }
     }
