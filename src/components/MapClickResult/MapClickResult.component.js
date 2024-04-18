@@ -1,19 +1,16 @@
-import React from 'react';
-
-import { withLocalize } from '@penta-b/ma-lib';
-
-import { LOCALIZATION_NAMESPACE } from '../../constants/constants';
-import * as turf from '@turf/turf';
-import { components as GridComponents } from '@penta-b/grid';
+import React from "react";
+import { withLocalize } from "@penta-b/ma-lib";
+import { LOCALIZATION_NAMESPACE } from "../../constants/constants";
+import { components as GridComponents } from "@penta-b/grid";
 const Grid = GridComponents.Grid;
 
 class MapClickResult extends React.Component {
     render() {
-        const { coordinate, t, info } = this.props;
+        const { info } = this.props;
         let parsedData = info.features.map((feature) => feature.properties);
         console.log("From container", info);
-        //make sure that query resp is returned 
-        // use grid component to view all features  
+        //make sure that query resp is returned
+        // use grid component to view all features
         return (
             <div>
                 <Grid
