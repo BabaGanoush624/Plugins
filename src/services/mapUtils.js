@@ -4,7 +4,7 @@ import { apiRegistry, actionsRegistry } from "@penta-b/ma-lib";
 let VL = null;
 
 // Checking the if the vector layer already exists to clear all the features on it(which won't happen until after the first click)
-const validateVL = async (options) => {
+export const validateVL = async (options) => {
     if (!VL) {
         const [VectorLayer] = await apiRegistry.getApis(["VectorLayer"]);
         VL = new VectorLayer();

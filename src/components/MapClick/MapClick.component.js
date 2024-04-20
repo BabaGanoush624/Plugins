@@ -9,7 +9,7 @@
 import React from "react";
 import { connect } from "react-redux";
 import { selectorsRegistry, actionsRegistry } from "@penta-b/ma-lib";
-import { drawFeautres } from "../../services/mapUtils";
+import { drawFeautres, validateVL } from "../../services/mapUtils";
 import * as turf from "@turf/turf";
 import { callQueryService } from "../../services/queryService";
 
@@ -32,7 +32,6 @@ class MapClickComponent extends React.Component {
             },
             (id) => (this.id = id)
         );
-        return res;
     }
 
     /**
@@ -65,6 +64,8 @@ class MapClickComponent extends React.Component {
                 callQueryService(ganoushLayer, this.handleResp, buffer);
             }
         } else {
+            // if the trigger isn't active clear all the features on the map and close the container
+            validateVL({ clear: true });
             this.id && this.props.removeMapClickResult(this.id);
         }
     }

@@ -29,7 +29,6 @@ export const callQueryService = async (layer, action, buffer) => {
     store.dispatch(systemShowLoading());
     query
         .queryFeatures(genQueryBody(layer, buffer))
-        // .then(res => JSON.parse(res))
         .then((response) => {
             action(response);
         })
