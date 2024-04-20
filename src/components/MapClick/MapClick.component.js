@@ -22,18 +22,12 @@ class MapClickComponent extends React.Component {
     }
 
     handleResp(res) {
-        // console.log(res);
         const data = JSON.parse(res?.data[0]?.features);
-
-        console.log(data);
         // removes the old click result if this.ID exist(container opened) remove the container
         this.id && this.props.removeMapClickResult(this.id);
-        // saves the single click state in currentClick
-        const currentClick = this.props.singleClick;
         // using the showMapClickResult and passing it the things that we want it to show in the container
         this.props.showMapClickResult(
             {
-                coordinate: currentClick.coordinate,
                 info: data,
             },
             (id) => (this.id = id)
@@ -54,16 +48,12 @@ class MapClickComponent extends React.Component {
             const prevClick = prevProps.singleClick;
             const currentClick = this.props.singleClick;
             //creating turf point and checking that the current click exitst
-            const point =
-                currentClick &&
-                turf.point([
-                    currentClick?.coordinate?.[0],
-                    currentClick?.coordinate?.[1],
-                ]);
+            const point = currentClick && turf.point(currentClick.coordinate);
             //creating turf buffer and checking that the point exists
             const buffer =
                 point && turf.buffer(point, 0.3, { units: "kilometers" });
             if (currentClick && currentClick != prevClick && buffer) {
+                console.log(buffer);
                 //drawing the feature on the map in the shape of a buffer with the style options entered
                 drawFeautres([buffer], {
                     vectorLayerOptions: { clear: true },
@@ -74,6 +64,8 @@ class MapClickComponent extends React.Component {
                 // calling the callQueryService function that sends that request to the dataBase to get back the features needed
                 callQueryService(ganoushLayer, this.handleResp, buffer);
             }
+        } else {
+            this.id && this.props.removeMapClickResult(this.id);
         }
     }
 
@@ -97,7 +89,7 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        // getting the showComponent functionality and storing in the props
+        // getting the showComponent functionality and storing it in the props
         showMapClickResult: (props, onAdd) =>
             dispatch(
                 actionsRegistry.getActionCreator(

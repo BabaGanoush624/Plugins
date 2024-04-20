@@ -11,7 +11,6 @@ const genQueryBody = (layer, buffer) => {
             dataSource: {
                 id: layer[0].id,
             },
-            returns: [],
             filter: {
                 conditionList: [
                     {

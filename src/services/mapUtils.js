@@ -15,21 +15,15 @@ const validateVL = async (options) => {
 };
 
 const generateStyle = async (styleOptions) => {
-    const [Style, Fill, Stroke, Circle] = await apiRegistry.getApis([
+    const [Style, Fill, Stroke] = await apiRegistry.getApis([
         "Style",
         "Fill",
         "Stroke",
-        "Circle",
     ]);
     let style;
     style = new Style(
         new Fill(styleOptions.color),
-        new Stroke("#000000", 1, null), //takes Color(string), width, lineDash
-        new Circle(
-            new Fill(styleOptions.color), //fill takes only one parameter => Color(string)
-            new Stroke("#000000", 1, null), // stroke
-            7 //readius ???confilct with the buffer radius???
-        )
+        new Stroke("#000000", 1, null) //takes Color(string), width, lineDash
     );
     return style;
 };
@@ -43,7 +37,7 @@ const generateFeature = async (GEOJSONFeature) => {
 // drawing the GEOJSONFeature (buffer) on the map
 export const drawFeautres = async (GEOJSONFeatures, options) => {
     await validateVL(options.vectorLayerOptions);
-    const features = await Promise.all(GEOJSONFeatures.map(generateFeature));
+    const features = await Promise.all(GEOJSONFeatures.map(generateFeature)); // iterates over the geoArray and calls the generateFeature on each item in the array (buffer only since we have one item in the array)
     const style = await generateStyle(options.styleOptions);
     VL.setStyle(style); // is this style applied to the whole of vector layer and not to the specified feature only
     VL.addFeatures(features); // adding the feature generated to the vectorLayer
